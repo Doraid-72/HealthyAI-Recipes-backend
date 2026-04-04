@@ -1,34 +1,21 @@
-const { OpenAI } = require('openai');
-const Content = require('../models/Content');
+// aiController.js
+// هذا ملف تجريبي لمعالجة طلبات المستخدم عبر الذكاء الاصطناعي
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-exports.generateRecipe = async (req, res) => {
-  const { userId, query, language } = req.body;
-
+exports.handleAIRequest = (req, res) => {
   try {
-    const response = await client.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        { role: "system", content: "أنت مساعد وصفات غذائية ذكي يقدم وصفات صحية." },
-        { role: "user", content: `أعطني وصفة باستخدام: ${query}` }
-      ]
-    });
+    const userInput = req.body.prompt; // المستخدم يرسل نص في body باسم prompt
 
-    const generatedText = response.choices[0].message.content;
+    if (!userInput) {
+      return res.status(400).json({ error: "يرجى إرسال prompt في الطلب" });
+    }
 
-    const newContent = new Content({
-      title: query,
-      type: "recipe",
-      description: generatedText,
-      language,
-      created_by: userId
-    });
+    // هنا تضع منطق الذكاء الاصطناعي الحقيقي لاحقًا
+    // الآن سنرجع رد تجريبي للتأكد أن السيرفر يعمل
+    const aiResponse = `AI backend استقبل: "${userInput}" وتمت معالجته بنجاح`;
 
-    await newContent.save();
-
-    res.json({ success: true, content: newContent });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.json({ reply: aiResponse });
+  } catch (err) {
+    console.error("AI Controller Error:", err);
+    res.status(500).json({ error: "خطأ في السيرفر" });
   }
 };

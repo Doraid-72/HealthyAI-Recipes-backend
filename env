@@ -1,0 +1,8 @@
+# رابط الاتصال بقاعدة البيانات Supabase
+DATABASE_URL=postgres://postgres:$X.xJE!wkLq&9%2@iquxpitseimigrdhljph.supabase.co:5432/postgres
+
+# المنفذ الذي سيعمل عليه السيرفر
+PORT=3000
+
+# مفتاح سري للتوكنات (JWT) إذا أردت إضافة مصادقة لاحقًا
+JWT_SECRET=mySuperSecretKey123
