@@ -1,21 +1,38 @@
-// aiController.js
-// هذا ملف تجريبي لمعالجة طلبات المستخدم عبر الذكاء الاصطناعي
+// controllers/aiController.js
+const OpenAI = require("openai");
 
-exports.handleAIRequest = (req, res) => {
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY, // ضع مفتاحك في ملف .env
+});
+
+exports.handleAIRequest = async (req, res, pool) => {
   try {
-    const userInput = req.body.prompt; // المستخدم يرسل نص في body باسم prompt
+    const userInput = req.body.prompt;
 
     if (!userInput) {
       return res.status(400).json({ error: "يرجى إرسال prompt في الطلب" });
     }
 
-    // هنا تضع منطق الذكاء الاصطناعي الحقيقي لاحقًا
-    // الآن سنرجع رد تجريبي للتأكد أن السيرفر يعمل
-    const aiResponse = `AI backend استقبل: "${userInput}" وتمت معالجته بنجاح`;
+    // استدعاء نموذج الذكاء الاصطناعي
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini", // نموذج سريع ودقيق
+      messages: [{ role: "user", content: userInput }],
+      max_tokens: 300,
+    });
 
-    res.json({ reply: aiResponse });
+    const aiResponse = completion.choices[0].message.content;
+
+    // تخزين الطلب والرد في قاعدة البيانات
+    const result = await pool.query(
+      'INSERT INTO ai_requests (prompt, reply, created_at) VALUES ($1, $2, NOW()) RETURNING id',
+      [userInput, aiResponse]
+    );
+
+    const requestId = result.rows[0].id;
+
+    res.json({ requestId, prompt: userInput, reply: aiResponse });
   } catch (err) {
     console.error("AI Controller Error:", err);
-    res.status(500).json({ error: "خطأ في السيرفر" });
+    res.status(500).json({ error: "خطأ في السيرفر أو قاعدة البيانات" });
   }
 };
